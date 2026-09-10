@@ -146,7 +146,7 @@ Pool names/tickers and other metadata contents are generally retrieved from exte
 
 **Ownership and availability:** D maintains a distinct public enrichment dataset with source/network, freshness and coverage, joins through verified pool identities and supplies results to C. D’s outage must not block A’s Midnight ingest or B’s private processing. An unavailable/stale source must not produce fabricated zeros or supposedly complete empty lists. D owns external enrichment sources; A uses Midnight node exclusively.
 
-**Effort and review:** D, its additional C routes and any hosted/self-operated backend costs are outside the **58–87 engineer-week** A+B+C allowance including contingency. Estimate D after choosing required fields, backend coverage and application-level derivations. Its source adapters, metadata fetching, untrusted input handling, freshness/rollback behavior and public API additions must join the security review when enabled. D’s code size and audit effort are not included in the core estimates below.
+**Effort and review:** D, its additional C routes and any hosted/self-operated backend costs are outside the A+B+C allowance and its contingency. Estimate D after choosing required fields, backend coverage and application-level derivations. Its source adapters, metadata fetching, untrusted input handling, freshness/rollback behavior and public API additions must join the security review when enabled. D’s code size and audit effort are not included in the core estimates below.
 
 ## Finality
 
@@ -226,48 +226,48 @@ The estimate includes reuse/maintenance of existing proof gates and focused prop
 
 ## Optimistic delivery effort
 
-These judgment-based estimates cover the alpha and expanded release together. They assume an experienced team, reuse of the node-ingest prototype and official midnight-ledger WASM, available historical node access, conventional deployment packaging and optional use of one supplied TEE platform with usable attestation/key-management facilities. Alpha targets bounded history/load and one profile, with allowance for the private TEE option. Expanded A includes limited PGlite support and broader packaging; expanded B completes operational coverage and profile support. Binding, database and platform compatibility are feasibility conditions. Each row includes its focused implementation tests; integration/recovery/security/load evidence is counted once.
+These judgment-based estimates distribute the combined A+B+C effort across the alpha and expanded release; every figure is a share of that combined base, not an absolute duration. They assume an experienced team, reuse of the node-ingest prototype and official midnight-ledger WASM, available historical node access, conventional deployment packaging and optional use of one supplied TEE platform with usable attestation/key-management facilities. Alpha targets bounded history/load and one profile, with allowance for the private TEE option. Expanded A includes limited PGlite support and broader packaging; expanded B completes operational coverage and profile support. Binding, database and platform compatibility are feasibility conditions. Each row includes its focused implementation tests; integration/recovery/security/load evidence is counted once.
 
-| Project | Usable alpha | Expanded release — additional | Combined base engineer-weeks |
+| Project | Usable alpha | Expanded release — additional | Combined share |
 |---|---:|---:|---:|
-| A — Data foundation | 6–10 | 18–26 | 24–36 |
-| B — Private foundation | 10–14 | 6–10 | 16–24 |
-| C — API | 4–6 | 4–6 | 8–12 |
-| **Total** | **20–30** | **28–42** | **48–72** |
+| A — Data foundation | 13.3% | 36.7% | 50.0% |
+| B — Private foundation | 20.0% | 13.3% | 33.3% |
+| C — API | 8.3% | 8.3% | 16.7% |
+| **Total** | **41.7%** | **58.3%** | **100%** |
 
-**Alpha allowance: 20–30 base / 24–36 with 20% contingency engineer-weeks.** This is part of the combined budget. Minimum A covers finalized payload ingestion and durable scan input; alpha B covers real matching, protected persistence, tenant/lifecycle controls and safe supported restart/restore; private C covers registration, status, paginated polling and one consumer. Expanded B covers broader recovery/retention workload evidence, operational automation, migrations/rotation tooling and additional deployment-profile validation. None of these deferrals permits alpha to skip key protection, revocation or crash-safe coverage.
+**Alpha allowance: 41.7% of the combined base; 50.0% of the base once its 20% contingency is included.** This is part of the combined budget. Minimum A covers finalized payload ingestion and durable scan input; alpha B covers real matching, protected persistence, tenant/lifecycle controls and safe supported restart/restore; private C covers registration, status, paginated polling and one consumer. Expanded B covers broader recovery/retention workload evidence, operational automation, migrations/rotation tooling and additional deployment-profile validation. None of these deferrals permits alpha to skip key protection, revocation or crash-safe coverage.
 
-**B requires an estimated 16–24 engineer-weeks** for private data definition, scanning and secure application/storage integration around the supplied TEE. C requires 8–12 for a focused API consuming A/B contracts. B has lower estimate confidence because its data model, persistence design and platform integration require validation in the feasibility evaluation. New cryptography, TEE platform construction, custom client attestation UX and full access-pattern hiding are outside this scope.
+**B requires an estimated 33.3% of the combined effort** for private data definition, scanning and secure application/storage integration around the supplied TEE. C requires 16.7% for a focused API consuming A/B contracts. B has lower estimate confidence because its data model, persistence design and platform integration require validation in the feasibility evaluation. New cryptography, TEE platform construction, custom client attestation UX and full access-pattern hiding are outside this scope.
 
 | Work | A | B | C |
 |---|---:|---:|---:|
-| Target/fixtures, node integration and supported WASM ledger replay | 6–9 | — | — |
-| Persisted state, publication, retention and recovery | 8–12 | — | — |
-| Core transaction/unshielded/selected-contract projections and public nullifier/commitment records | 5–8 | — | — |
-| Internal reads and durable changes | 2–3 | — | — |
-| A verification (Lean/property/PostgreSQL faults), deployment and limited PGlite support | 3–4 | — | — |
-| Private data requirements, field classification and threat model | — | 3–4 | — |
-| Historical/live matching, identity and scan coverage | — | 3–5 | — |
-| Protected persistence, TEE boundary and attested key-release integration | — | 4–6 | — |
-| Tenant/key lifecycle, backup/restore, revocation and rotation | — | 3–5 | — |
-| Security/recovery integration evidence and scan/storage benchmarks | — | 3–4 | — |
-| Focused public/private query interface | — | — | 3–4 |
-| One resumable change-delivery protocol | — | — | 1–2 |
-| Protocol credential integration, admission and resource controls | — | — | 2–3 |
-| Selected-consumer and reconnect/recovery integration | — | — | 2–3 |
-| **Base engineer-weeks** | **24–36** | **16–24** | **8–12** |
+| Target/fixtures, node integration and supported WASM ledger replay | 12.5% | — | — |
+| Persisted state, publication, retention and recovery | 16.7% | — | — |
+| Core transaction/unshielded/selected-contract projections and public nullifier/commitment records | 10.8% | — | — |
+| Internal reads and durable changes | 4.2% | — | — |
+| A verification (Lean/property/PostgreSQL faults), deployment and limited PGlite support | 5.8% | — | — |
+| Private data requirements, field classification and threat model | — | 5.8% | — |
+| Historical/live matching, identity and scan coverage | — | 6.7% | — |
+| Protected persistence, TEE boundary and attested key-release integration | — | 8.3% | — |
+| Tenant/key lifecycle, backup/restore, revocation and rotation | — | 6.7% | — |
+| Security/recovery integration evidence and scan/storage benchmarks | — | 5.8% | — |
+| Focused public/private query interface | — | — | 5.8% |
+| One resumable change-delivery protocol | — | — | 2.5% |
+| Protocol credential integration, admission and resource controls | — | — | 4.2% |
+| Selected-consumer and reconnect/recovery integration | — | — | 4.2% |
+| **Share of combined effort** | **50.0%** | **33.3%** | **16.7%** |
 
-**A+B+C total: 48–72 engineer-weeks; 58–87 with a 20% contingency applied to that total. D is separately scoped and excluded.** The contingency gives 57.6–86.4, rounded up at each end to whole engineer-weeks; no per-project rounding is used. The initial 4–6 engineer-week feasibility evaluation is included in these rows, not an additional charge. Staffing and serial dependencies determine calendar delivery; dividing by headcount is not a schedule.
+**A+B+C is the 100% base; a 20% contingency is applied to that total, not per project. D is separately scoped and excluded.** Shares are the midpoint of each row’s estimate over the combined midpoint, rounded to one decimal; columns sum to their totals within rounding. The initial feasibility evaluation, 8.3% of the combined effort, is included in these rows, not an additional charge. Staffing and serial dependencies determine calendar delivery; dividing by headcount is not a schedule.
 
-The combined work table allocates scope by responsibility; it does not require completing A before B or private C. Alpha/expanded columns split those same activities without double counting. The alpha range depends on validating direct node-payload matching; a requirement for fully applied wallet outcomes or missing match inputs changes that range.
+The combined work table allocates scope by responsibility; it does not require completing A before B or private C. Alpha/expanded columns split those same activities without double counting. The alpha share depends on validating direct node-payload matching; a requirement for fully applied wallet outcomes or missing match inputs changes that share.
 
 The estimate covers selected projections/state views, including the public nullifier/commitment records, one native client contract and client resynchronization. Complete wallet synchronization, provider-cursor migration and broad reference compatibility require separate scope and estimates. Engineering effort is a planning judgment; the design simulation provides no productivity measurement.
 
-External auditor effort, infrastructure, provider charges and ongoing maintenance are excluded. Contingency may cover ordinary fixes; major audit findings or a failed integration assumption can require revising the range.
+External auditor effort, infrastructure, provider charges and ongoing maintenance are excluded. Contingency may cover ordinary fixes; major audit findings or a failed integration assumption can require revising the estimate.
 
 ## Evidence that justifies proceeding
 
-The **4–6 engineer-week feasibility evaluation**, included in the alpha’s 20–30 base effort, tests the direct private-discovery path through a small real integration and benchmark. It covers private data/security decisions and protected persistence. Commitment to the alpha budget depends on the following evidence:
+The **feasibility evaluation, 8.3% of the combined effort and included in the alpha allowance**, tests the direct private-discovery path through a small real integration and benchmark. It covers private data/security decisions and protected persistence. Commitment to the alpha budget depends on the following evidence:
 
 - **Node/matching fit:** a supported finalized node fixture yields versioned transaction offers, their nullifiers and commitments, and the expected positive/negative WASM viewing-key matches, including fallible offers. No official indexer supplies production inputs. Durable observation publication and retry preserve identities and declared source coverage. Missing payloads or required exports must be explicit before accepting the alpha estimate.
 - **Verification fit:** map the publication/progress/retention invariants to applicable Lean storage laws and implementation tests; exercise a PostgreSQL interruption/retry case. Record unproved model-to-implementation assumptions instead of describing the entire indexer as formally verified.

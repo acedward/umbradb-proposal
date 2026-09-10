@@ -41,16 +41,16 @@
 
 ## Effort and investment decision \*
 
-| Delivery | Engineer-weeks |
+| Delivery | Share of effort |
 |---|---:|
-| **Usable wallet/private-API alpha** | **20–30** |
-| Expanded data/public APIs — additional | 28–42 |
-| **Combined A+B+C / with 20% contingency** | **48–72 / 58–87** |
+| **Usable wallet/private-API alpha** | **41.7%** |
+| Expanded data/public APIs — additional | 58.3% |
+| **Combined A+B+C / with 20% contingency** | **100% / 120%** |
 | D — Other functionalities | Separately scoped |
 
-Alpha with contingency: **24–36 engineer-weeks** within the combined total.
+Shares are each delivery’s midpoint over the combined A+B+C midpoint. Alpha with its contingency: **50.0%** of the combined base.
 
-**Included feasibility gate: 4–6 engineer-weeks.** Tests node→WASM→protected storage→private API and recovery. Assumes one network, bounded history/load and one profile, including the supplied private TEE option. Conventional hosting trusts the operator.
+**Included feasibility gate: 8.3% of the combined effort, within the alpha.** Tests node→WASM→protected storage→private API and recovery. Assumes one network, bounded history/load and one profile, including the supplied private TEE option. Conventional hosting trusts the operator.
 
 \* AI speedup is not factored into these estimates.
 
