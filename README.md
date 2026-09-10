@@ -23,7 +23,7 @@
 
 | Aspect | Midnight Indexer 4.4.0-rc.3 | Proposed UmbraDB |
 |---|---|---|
-| Structure | Chain, wallet, SPO and API components | Independent A/B/C; wallet/private-API alpha first |
+| Structure | Chain, wallet, SPO and API components | Independent A/B/C delivered in six steps; wallet/private API usable at step 2 |
 | Chain sources | Midnight node; Blockfrost for Cardano staking | A: Midnight node only. D: Blockfrost or UTxORPC |
 | Ledger integration | Native Rust replay and root checks | Core ledger WASM; alpha decoding/matching, expanded replay/root checks |
 | Database architecture | PostgreSQL/cloud; SQLite/standalone; ledger state store | PostgreSQL/production; PGlite/development target; separate private storage |
@@ -33,24 +33,22 @@
 | Deployment | Standalone or separate services | Public-facing or private; optional TEE for public/private processing |
 | Interfaces | GraphQL, subscriptions and wallet protocols | Private alpha API; expanded public interfaces |
 
-## Delivery order
+## Delivery steps, effort and investment decision \*
 
-1. **Wallet alpha — minimal A + B + private C.** Register keys, scan history/live transactions, retrieve matches/coverage and pause/revoke access. One application uses authenticated cursor polling. Applied outcomes are unknown; complete wallet accounting/sync is outside scope.
-2. **Expanded data/APIs.** Replay/root checks, applied outcomes, retained state, unshielded/selected-contract projections, indexed nullifier/commitment records, public APIs, streaming and PGlite development.
-3. **Optional D.** Enrichment follows separate scope/source validation.
+| Step | Delivers | Share of effort |
+|---|---|---:|
+| **0 — Testing infrastructure** (A) | Fixtures, property/crash harness, Lean gates and CI; the stack runs on PGlite for development and tests, PostgreSQL for acceptance | 7.5% |
+| **1 — Common/public data store** (A) | Midnight-node-only finalized ingestion, versioned transaction evidence, stable observation IDs, publication/recovery contract and internal reads; operates without wallets | 18.3% |
+| **2 — Wallet data store availability** (B, private C) | Viewing-key registration, historical/live matching, protected associations and coverage, lifecycle/revocation and cursor polling for one application; conventional profile, applied outcomes unknown | 31.7% |
+| **3 — TEE execution for data availability** (B, private C) | Private scanning, key intake and private query execution inside the supplied confidential boundary, attested key release and rollback-safe restore | 10.8% |
+| **4 — Extended public data** (A) | Ledger WASM replay and root checks, applied outcomes, retained state, unshielded/selected-contract projections and indexed nullifier/commitment records | 24.2% |
+| **5 — Expanded public API** (C) | Public query routes, streaming and resumable delivery, admission/resource controls and reconnect behavior | 7.5% |
+| **Steps 0–5 combined / with 20% contingency** | | **100% / 120%** |
+| **6 — Other functionalities** (D) | Cardano pool metadata and staking enrichment via Blockfrost or UTxORPC | Separately scoped |
 
-## Effort and investment decision \*
+Shares are each step’s midpoint over the combined 0–5 midpoint. The wallet flow is usable after step 2 (steps 0–2: 57.5%); step 3 adds the confidential profile (steps 0–3: 68.3%). Steps 4–5 reuse the step 1 store and can proceed in parallel with steps 2–3.
 
-| Delivery | Share of effort |
-|---|---:|
-| **Usable wallet/private-API alpha** | **41.7%** |
-| Expanded data/public APIs — additional | 58.3% |
-| **Combined A+B+C / with 20% contingency** | **100% / 120%** |
-| D — Other functionalities | Separately scoped |
-
-Shares are each delivery’s midpoint over the combined A+B+C midpoint. Alpha with its contingency: **50.0%** of the combined base.
-
-**Included feasibility gate: 8.3% of the combined effort, within the alpha.** Tests node→WASM→protected storage→private API and recovery. Assumes one network, bounded history/load and one profile, including the supplied private TEE option. Conventional hosting trusts the operator.
+**Included feasibility gate: 8.3% of the combined effort, within steps 0–3.** Tests node→WASM→protected storage→private API and recovery. Assumes one network, bounded history/load and one profile, including the supplied private TEE option. Conventional hosting trusts the operator.
 
 \* AI speedup is not factored into these estimates.
 

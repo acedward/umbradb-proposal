@@ -6,11 +6,11 @@
 
 ## Delivery priority: usable wallet alpha
 
-**The first deliverable is a working private flow:** a user registers a supported viewing key, discovers relevant transactions from a declared history range, follows live finalized observations, retrieves results and scan coverage through an authorized API, and pauses or revokes access. One selected application completes this flow. B owns private processing and C owns the private API as separate development responsibilities.
+**The first usable deliverable is a working private flow (step 2, on the store from steps 0–1):** a user registers a supported viewing key, discovers relevant transactions from a declared history range, follows live finalized observations, retrieves results and scan coverage through an authorized API, and pauses or revokes access. One selected application completes this flow. B owns private processing and C owns the private API as separate development responsibilities.
 
 ### Alpha data dependency
 
-The wallet flow needs a small independently operable part of A: Midnight-node-only finalized input, transaction payload extraction with protocol/network identification, stable observation IDs, durable ordered storage, declared source coverage, restart and resumable reads. A receives no viewing keys or private associations. Unsupported payloads or protocol versions create explicit gaps or stop processing; they cannot count as fully scanned history. B consumes this committed source contract, and C consumes B; neither grows a separate ingestion pipeline. Minimum A also persists the nullifiers and commitments it extracts from observed offers, marked with unknown applied status, so verified indexing in the expanded release does not re-ingest that history; see [public nullifiers and commitments](#public-nullifiers-and-commitments).
+The wallet flow needs the common/public data store from step 1, an independently operable part of A: Midnight-node-only finalized input, transaction payload extraction with protocol/network identification, stable observation IDs, durable ordered storage, declared source coverage, restart and resumable reads. A receives no viewing keys or private associations. Unsupported payloads or protocol versions create explicit gaps or stop processing; they cannot count as fully scanned history. B consumes this committed source contract, and C consumes B; neither grows a separate ingestion pipeline. Minimum A also persists the nullifiers and commitments it extracts from observed offers, marked with unknown applied status, so verified indexing in the expanded release does not re-ingest that history; see [public nullifiers and commitments](#public-nullifiers-and-commitments).
 
 **Full ledger replay is not a dependency of the alpha relevance predicate.** The pinned WASM API exposes `EncryptionSecretKey.test(offer)` and key deserialization. Its implementation tests output/transient ciphertexts using the supplied key. The reference indexer’s predicate checks guaranteed and fallible transaction offers without taking global ledger state. This supports a source-based design inference that transaction observations can feed private matching before full public state projections exist. Key format, versioned transaction extraction and real fixture results require validation. [WASM key API and predicate](https://github.com/midnightntwrk/midnight-ledger/blob/4823b5351b17cc49e30f19760dbd30a73cf95e22/ledger-wasm/src/zswap_keys.rs#L289), [reference transaction relevance](https://github.com/midnightntwrk/midnight-indexer/blob/56561b2f5cf5c6839f678257fc69bed1a8b9ba2c/indexer-common/src/domain/ledger/transaction.rs#L250).
 
@@ -26,19 +26,23 @@ Alpha records **observed transaction relevance**, with node-reported finalized i
 | Pause/revoke | Stop or revoke processing and access with stale-worker checks; restart/restore respects lifecycle state |
 | Recover | Commit private matches and scan progress together, deduplicate retries, and preserve authorization and confidentiality across interruption and supported restore |
 
-The alpha uses PostgreSQL, one network/version range, bounded history/load and one selected deployment profile. Its allowance includes the supplied TEE option for B and private request handling; A can run conventionally. A conventional private profile explicitly trusts the runtime operator. Supporting every profile, public processing inside a TEE and PGlite development packaging are expanded-release work. The alpha does not require a public blockchain API or WebSocket service; private cursor polling supplies the first consumer’s integration.
+The alpha uses PostgreSQL, one network/version range, bounded history/load and one selected deployment profile. Its allowance includes the supplied TEE option for B and private request handling; A can run conventionally. A conventional private profile explicitly trusts the runtime operator. Supporting every profile and public processing inside a TEE are expanded-release work; PGlite development and test support is step 0. The alpha does not require a public blockchain API or WebSocket service; private cursor polling supplies the first consumer’s integration.
 
 Alpha acceptance includes real node→WASM matching→private-store→API evidence, positive/negative and fallible-offer fixtures, historical/live continuity, wrong-tenant rejection, interruption/retry, revoke-during-scan, supported restore and bounded-load behavior. A’s verification combines Lean 4 storage proofs with property-based and PostgreSQL crash/recovery tests. Key/association protection, declared retention and recovery are delivery requirements. Public availability requires an external audit of project-specific code in this path, including minimum A and the chosen profile. Unmodified shared libraries, including midnight-ledger, are trusted dependencies outside re-audit; their integration and local modifications are in scope.
 
 ### Delivery sequence
 
-| Delivery | Dependencies and parallel development | Value |
+| Step | Dependencies and parallel development | Value |
 |---|---|---|
-| **1 — Wallet/private-API alpha** | Minimum A ingestion/storage and B’s data/security contract establish the live integration. B and private C develop concurrently against fixtures/contracts and integrate incrementally; full A and public C are not prerequisites | A real application registers a key and retrieves historical/live relevance with coverage and lifecycle controls |
-| **2 — Expanded data and APIs** | Reuse the alpha’s ingestion, identities and private service. Add complete required replay/root checks, outcome enrichment, retained-state reads, unshielded/selected-contract projections, public C routes and streaming; broaden deployment/PGlite support | Public data consumers and richer private context use the same foundations |
-| **D — Optional enrichment** | Depends on selected external-source coverage and C presentation; does not gate the alpha or expanded core | Pool metadata and staking analytics |
+| **0 — Testing infrastructure** (A) | First. Node/WASM fixtures, property and crash harness, Lean gates, CI and the PGlite adapter; PostgreSQL remains the acceptance environment | Every later step lands with reproducible tests |
+| **1 — Common/public data store** (A) | Depends on 0. Node ingestion, versioned evidence, stable identities, publication/recovery contract and internal reads; operates without wallets | The committed source contract that B and public reads consume |
+| **2 — Wallet data store availability** (B, private C) | Depends on 1. Conventional profile; B and private C develop concurrently against step 1’s contract and integrate incrementally; steps 4–5 are not prerequisites | A real application registers a key and retrieves historical/live relevance with coverage and lifecycle controls |
+| **3 — TEE execution for data availability** (B, private C) | Depends on step 2’s data and security contract. Adds the confidential boundary, attested key release, rollback-safe restore and the private handler inside it | Confidentiality from the host within the declared threat model |
+| **4 — Extended public data** (A) | Depends on 1; runs in parallel with 2–3. Complete required replay/root checks, outcome enrichment, retained-state reads, unshielded/selected-contract projections and indexed nullifier/commitment records | Applied outcomes enrich private results; public consumers get verified state |
+| **5 — Expanded public API** (C) | Depends on 4. Public routes, streaming, public admission controls and reconnect behavior | Public data consumers and the wallet SDK’s client-side sync path |
+| **6 — Other functionalities** (D) | Depends on selected external-source coverage and C presentation; does not gate steps 0–5 | Pool metadata and staking analytics |
 
-These are product delivery boundaries and dependencies, not an executable implementation plan. Internal IDs/contracts need versioning so replay enrichment preserves the alpha’s observation references or provides an explicit migration; it does not create a second wallet indexer. Concrete network, application, history/load targets and deployment profile are feasibility inputs.
+These are product delivery boundaries and dependencies, not an executable implementation plan. In the two-release framing used below, the usable wallet alpha is steps 0–3 and the expanded release is steps 4–5. Internal IDs/contracts need versioning so step 4 replay enrichment preserves step 2’s observation references or provides an explicit migration; it does not create a second wallet indexer. Concrete network, application, history/load targets and deployment profile are feasibility inputs.
 
 ## Core delivery and optional extensions
 
@@ -146,7 +150,7 @@ Pool names/tickers and other metadata contents are generally retrieved from exte
 
 **Ownership and availability:** D maintains a distinct public enrichment dataset with source/network, freshness and coverage, joins through verified pool identities and supplies results to C. D’s outage must not block A’s Midnight ingest or B’s private processing. An unavailable/stale source must not produce fabricated zeros or supposedly complete empty lists. D owns external enrichment sources; A uses Midnight node exclusively.
 
-**Effort and review:** D, its additional C routes and any hosted/self-operated backend costs are outside the A+B+C allowance and its contingency. Estimate D after choosing required fields, backend coverage and application-level derivations. Its source adapters, metadata fetching, untrusted input handling, freshness/rollback behavior and public API additions must join the security review when enabled. D’s code size and audit effort are not included in the core estimates below.
+**Effort and review:** D, its additional C routes and any hosted/self-operated backend costs are outside the step 0–5 allowance and its contingency. Estimate D after choosing required fields, backend coverage and application-level derivations. Its source adapters, metadata fetching, untrusted input handling, freshness/rollback behavior and public API additions must join the security review when enabled. D’s code size and audit effort are not included in the core estimates below.
 
 ## Finality
 
@@ -224,42 +228,56 @@ The runtime suite includes watermark property tests and a `saveAndAdvance` crash
 
 The estimate includes reuse/maintenance of existing proof gates and focused property/fault tests in A’s validation allowance. A complete proof of the new distributed protocol, SQL refinement, eventual GC or a new Quint verification project requires separate scope and effort. Formal verification supplies evidence for the project-specific review; it does not replace private-data, API or deployment security assessment.
 
-## Optimistic delivery effort
+## Optimistic delivery effort by step
 
-These judgment-based estimates distribute the combined A+B+C effort across the alpha and expanded release; every figure is a share of that combined base, not an absolute duration. They assume an experienced team, reuse of the node-ingest prototype and official midnight-ledger WASM, available historical node access, conventional deployment packaging and optional use of one supplied TEE platform with usable attestation/key-management facilities. Alpha targets bounded history/load and one profile, with allowance for the private TEE option. Expanded A includes limited PGlite support and broader packaging; expanded B completes operational coverage and profile support. Binding, database and platform compatibility are feasibility conditions. Each row includes its focused implementation tests; integration/recovery/security/load evidence is counted once.
+These judgment-based estimates distribute the combined A+B+C effort across delivery steps 0–5; every figure is a share of that combined base, not an absolute duration. They assume an experienced team, reuse of the node-ingest prototype and official midnight-ledger WASM, available historical node access, conventional deployment packaging and optional use of one supplied TEE platform with usable attestation/key-management facilities. Step 0 supplies the test harness and PGlite adapter; step 1 targets bounded history/load; steps 2–3 cover the conventional and TEE private profiles; steps 4–5 add replay-derived data, broader packaging and the public API. Binding, database and platform compatibility are feasibility conditions. Each row includes its focused implementation tests; integration/recovery/security/load evidence is counted once.
 
-| Project | Usable alpha | Expanded release — additional | Combined share |
-|---|---:|---:|---:|
-| A — Data foundation | 13.3% | 36.7% | 50.0% |
-| B — Private foundation | 20.0% | 13.3% | 33.3% |
-| C — API | 8.3% | 8.3% | 16.7% |
-| **Total** | **41.7%** | **58.3%** | **100%** |
+| Step | Projects | Scope | Share |
+|---|---|---|---:|
+| 0 — Testing infrastructure | A | Verification harness, Lean gates, node/WASM fixtures and the PGlite adapter for development and CI | 7.5% |
+| 1 — Common/public data store | A | Node ingestion, versioned evidence, stable identities, publication/recovery, internal reads and packaging | 18.3% |
+| 2 — Wallet data store availability | B, C | Private data contract, matching and coverage, conventional protected persistence, lifecycle and the private API for one consumer | 31.7% |
+| 3 — TEE execution for data availability | B, C | Confidential boundary, attested key release, rollback-safe restore and the private handler inside it | 10.8% |
+| 4 — Extended public data | A | WASM replay and root checks, retained ledger state, projections and indexed nullifier/commitment records | 24.2% |
+| 5 — Expanded public API | C | Public routes, streaming, public admission controls and reconnect behavior | 7.5% |
+| **Steps 0–5** | **A+B+C** | Project shares: A 50.0%, B 33.3%, C 16.7% | **100%** |
+| 6 — Other functionalities | D | Enrichment; see [D](#d--other-functionalities) | Separately scoped |
 
-**Alpha allowance: 41.7% of the combined base; 50.0% of the base once its 20% contingency is included.** This is part of the combined budget. Minimum A covers finalized payload ingestion and durable scan input; alpha B covers real matching, protected persistence, tenant/lifecycle controls and safe supported restart/restore; private C covers registration, status, paginated polling and one consumer. Expanded B covers broader recovery/retention workload evidence, operational automation, migrations/rotation tooling and additional deployment-profile validation. None of these deferrals permits alpha to skip key protection, revocation or crash-safe coverage.
+**The usable wallet alpha is steps 0–3: 68.3% of the combined base (57.5% without the TEE step), or 82.0% once its 20% contingency is included.** This is part of the combined budget. Step 1 covers finalized payload ingestion, durable scan input and the publication/recovery contract; step 2 covers real matching, conventional protected persistence, tenant/lifecycle controls, rotation tooling and safe supported restart/restore, plus registration, status and paginated polling for one consumer; step 3 covers the confidential boundary, attested key release, rollback-safe restore and TEE profile validation. Steps 4–5 cover replay-derived public data and the public API. None of these deferrals permits steps 1–3 to skip key protection, revocation or crash-safe coverage.
 
-**B requires an estimated 33.3% of the combined effort** for private data definition, scanning and secure application/storage integration around the supplied TEE. C requires 16.7% for a focused API consuming A/B contracts. B has lower estimate confidence because its data model, persistence design and platform integration require validation in the feasibility evaluation. New cryptography, TEE platform construction, custom client attestation UX and full access-pattern hiding are outside this scope.
+**B requires an estimated 33.3% of the combined effort** for private data definition, scanning and secure application/storage integration around the supplied TEE. C requires 16.7% for a focused API consuming A/B contracts. By step, B’s share is 23.3% in step 2 and 10.0% in step 3; C’s share is 8.3% in step 2, 0.8% in step 3 and 7.5% in step 5. B has lower estimate confidence because its data model, persistence design and platform integration require validation in the feasibility evaluation. New cryptography, TEE platform construction, custom client attestation UX and full access-pattern hiding are outside this scope.
 
-| Work | A | B | C |
-|---|---:|---:|---:|
-| Target/fixtures, node integration and supported WASM ledger replay | 12.5% | — | — |
-| Persisted state, publication, retention and recovery | 16.7% | — | — |
-| Core transaction/unshielded/selected-contract projections and public nullifier/commitment records | 10.8% | — | — |
-| Internal reads and durable changes | 4.2% | — | — |
-| A verification (Lean/property/PostgreSQL faults), deployment and limited PGlite support | 5.8% | — | — |
-| Private data requirements, field classification and threat model | — | 5.8% | — |
-| Historical/live matching, identity and scan coverage | — | 6.7% | — |
-| Protected persistence, TEE boundary and attested key-release integration | — | 8.3% | — |
-| Tenant/key lifecycle, backup/restore, revocation and rotation | — | 6.7% | — |
-| Security/recovery integration evidence and scan/storage benchmarks | — | 5.8% | — |
-| Focused public/private query interface | — | — | 5.8% |
-| One resumable change-delivery protocol | — | — | 2.5% |
-| Protocol credential integration, admission and resource controls | — | — | 4.2% |
-| Selected-consumer and reconnect/recovery integration | — | — | 4.2% |
-| **Share of combined effort** | **50.0%** | **33.3%** | **16.7%** |
+| Step | Work | Project | Share |
+|---|---|---|---:|
+| 0 | Verification harness: Lean gates, property/crash tests and the PGlite adapter | A | 5.0% |
+| 0 | Target selection and node/WASM fixtures | A | 2.5% |
+| 1 | Node integration, versioned decoding and stable observation identities | A | 5.0% |
+| 1 | Durable ordered storage, publication/recovery contract, retention and writer fencing | A | 8.3% |
+| 1 | Internal reads and durable change records | A | 4.2% |
+| 1 | Deployment packaging | A | 0.8% |
+| 2 | Private data requirements, field classification and threat model | B | 5.8% |
+| 2 | Historical/live matching, identity and scan coverage | B | 6.7% |
+| 2 | Conventional protected persistence and tenant separation | B | 2.5% |
+| 2 | Tenant/key lifecycle, revocation, rotation and conventional restore | B | 5.0% |
+| 2 | Conventional security/recovery evidence and scan/storage benchmarks | B | 3.3% |
+| 2 | Private query interface, cursor polling and tenant credential integration | C | 5.0% |
+| 2 | Selected-consumer integration | C | 3.3% |
+| 3 | TEE boundary, attested key release and protected external storage | B | 5.8% |
+| 3 | Rollback-safe restore and freshness authority | B | 1.7% |
+| 3 | Attestation, key-release and TEE recovery evidence | B | 2.5% |
+| 3 | Private request handler inside or forwarding to the boundary | C | 0.8% |
+| 4 | Supported WASM ledger replay and root checks | A | 5.0% |
+| 4 | Retained ledger state store, garbage collection and expanded publication | A | 8.3% |
+| 4 | Core transaction/unshielded/selected-contract projections and public nullifier/commitment records | A | 10.8% |
+| 5 | Public query routes | C | 3.3% |
+| 5 | Streaming and resumable change delivery | C | 1.7% |
+| 5 | Public admission and resource controls | C | 1.7% |
+| 5 | Reconnect and overload behavior | C | 0.8% |
+| | **Steps 0–5** | **A 50.0% · B 33.3% · C 16.7%** | **100%** |
 
-**A+B+C is the 100% base; a 20% contingency is applied to that total, not per project. D is separately scoped and excluded.** Shares are the midpoint of each row’s estimate over the combined midpoint, rounded to one decimal; columns sum to their totals within rounding. The initial feasibility evaluation, 8.3% of the combined effort, is included in these rows, not an additional charge. Staffing and serial dependencies determine calendar delivery; dividing by headcount is not a schedule.
+**Steps 0–5 are the 100% base; a 20% contingency is applied to that total, not per step or project. Step 6 (D) is separately scoped and excluded.** Shares are the midpoint of each row’s estimate over the combined midpoint, rounded to one decimal; steps and projects sum to their totals within rounding. The initial feasibility evaluation, 8.3% of the combined effort, is included within steps 0–3, not an additional charge. Staffing and serial dependencies determine calendar delivery; dividing by headcount is not a schedule.
 
-The combined work table allocates scope by responsibility; it does not require completing A before B or private C. Alpha/expanded columns split those same activities without double counting. The alpha share depends on validating direct node-payload matching; a requirement for fully applied wallet outcomes or missing match inputs changes that share.
+The step table orders delivery; the project shares allocate the same work by responsibility without double counting. Steps 0–1 precede step 2, step 3 builds on step 2’s data and security contract, and steps 4–5 reuse the step 1 store and can run in parallel with steps 2–3. The step 2 share depends on validating direct node-payload matching; a requirement for fully applied wallet outcomes or missing match inputs changes that share.
 
 The estimate covers selected projections/state views, including the public nullifier/commitment records, one native client contract and client resynchronization. Complete wallet synchronization, provider-cursor migration and broad reference compatibility require separate scope and estimates. Engineering effort is a planning judgment; the design simulation provides no productivity measurement.
 
@@ -267,7 +285,7 @@ External auditor effort, infrastructure, provider charges and ongoing maintenanc
 
 ## Evidence that justifies proceeding
 
-The **feasibility evaluation, 8.3% of the combined effort and included in the alpha allowance**, tests the direct private-discovery path through a small real integration and benchmark. It covers private data/security decisions and protected persistence. Commitment to the alpha budget depends on the following evidence:
+The **feasibility evaluation, 8.3% of the combined effort and included within steps 0–3**, tests the direct private-discovery path through a small real integration and benchmark. It covers private data/security decisions and protected persistence. Commitment to the alpha budget depends on the following evidence:
 
 - **Node/matching fit:** a supported finalized node fixture yields versioned transaction offers, their nullifiers and commitments, and the expected positive/negative WASM viewing-key matches, including fallible offers. No official indexer supplies production inputs. Durable observation publication and retry preserve identities and declared source coverage. Missing payloads or required exports must be explicit before accepting the alpha estimate.
 - **Verification fit:** map the publication/progress/retention invariants to applicable Lean storage laws and implementation tests; exercise a PostgreSQL interruption/retry case. Record unproved model-to-implementation assumptions instead of describing the entire indexer as formally verified.
