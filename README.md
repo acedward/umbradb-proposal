@@ -12,7 +12,7 @@
 
 | Project | Responsibility |
 |---|---|
-| **A — Data foundation** | Midnight-node-only ingestion, transaction evidence, ledger-derived state/projections, retention and publication/recovery. Operates without wallets. |
+| **A — Data foundation** | Midnight-node-only ingestion, transaction evidence, public nullifier/commitment records, ledger-derived state/projections, retention and publication/recovery. Operates without wallets. |
 | **B — Private data foundation** | Runtime viewing-key intake and scanning over A; protected wallet↔transaction mappings, scan coverage, private-access rules and key lifecycle. Optional TEE. |
 | **C — API** | Independent public/private interfaces over A/B and optional D; authentication, B’s access rules, pagination and subscriptions. |
 | **D — Other functionalities** | Optional enrichment, including Cardano pool metadata/staking via Blockfrost or UTxORPC; source adapters and derived data. Separately scoped. |
@@ -29,13 +29,14 @@
 | Database architecture | PostgreSQL/cloud; SQLite/standalone; ledger state store | PostgreSQL/production; PGlite/development target; separate private storage |
 | Chain progress | Finalized blocks | Finalized input; separate ingestion and wallet-scan coverage |
 | Private data | Viewing-key scanning; SDK defaults to local matching | Opt-in viewing keys and protected relevance mappings |
+| Shielded public data | Nullifier tables, ledger events, tree end indices and prefix subscriptions | A: indexed nullifier/commitment records with tree indices; C: lookups, prefix filters and event streams |
 | Deployment | Standalone or separate services | Public-facing or private; optional TEE for public/private processing |
 | Interfaces | GraphQL, subscriptions and wallet protocols | Private alpha API; expanded public interfaces |
 
 ## Delivery order
 
 1. **Wallet alpha — minimal A + B + private C.** Register keys, scan history/live transactions, retrieve matches/coverage and pause/revoke access. One application uses authenticated cursor polling. Applied outcomes are unknown; complete wallet accounting/sync is outside scope.
-2. **Expanded data/APIs.** Replay/root checks, applied outcomes, retained state, unshielded/selected-contract projections, public APIs, streaming and PGlite development.
+2. **Expanded data/APIs.** Replay/root checks, applied outcomes, retained state, unshielded/selected-contract projections, indexed nullifier/commitment records, public APIs, streaming and PGlite development.
 3. **Optional D.** Enrichment follows separate scope/source validation.
 
 ## Effort and investment decision \*
